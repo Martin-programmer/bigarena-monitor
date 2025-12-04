@@ -1,6 +1,7 @@
 import os
 from typing import Dict, Any, List
 
+from dotenv import load_dotenv
 from sqlalchemy import (
     create_engine,
     Column,
@@ -14,9 +15,14 @@ from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
 # === КОНФИГУРАЦИЯ НА БАЗАТА ===
 
+# Зареждаме .env, за да видим DATABASE_URL локално
+load_dotenv()
 # Ако има DATABASE_URL → ползваме него (Postgres в облака)
 # Иначе падаме към локален SQLite (data.db)
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///data.db")
+
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 # Допълнителни аргументи за SQLite (check_same_thread)
 connect_args = {}

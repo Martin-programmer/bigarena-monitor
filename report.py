@@ -1,5 +1,7 @@
-import db
 import pandas as pd
+from sqlalchemy import text
+
+import db
 
 
 def get_daily_revenue(vendor_id: int, date_str: str):
@@ -11,27 +13,44 @@ def get_daily_revenue(vendor_id: int, date_str: str):
     engine = db.get_sqlalchemy_engine()
 
     # Общо по ден
-    query_total = """
+    query_total = text(
+        """
         SELECT SUM(revenue) AS total_revenue
         FROM sales
-        WHERE vendor_id = ?
-          AND substr(timestamp, 7, 4) || '-' || substr(timestamp, 4, 2) || '-' || substr(timestamp, 1, 2) = ?;
-    """
-    total_df = pd.read_sql_query(query_total, engine, params=(vendor_id, date_str))
-    total_revenue = float(total_df["total_revenue"].iloc[0]) if not total_df.empty and total_df["total_revenue"].iloc[0] is not None else 0.0
+        WHERE vendor_id = :vendor_id
+          AND (substr(timestamp, 7, 4) || '-' || substr(timestamp, 4, 2) || '-' || substr(timestamp, 1, 2)) = :date_str;
+        """
+    )
+    total_df = pd.read_sql_query(
+        query_total,
+        engine,
+        params={"vendor_id": vendor_id, "date_str": date_str},
+    )
+    total_revenue = (
+        float(total_df["total_revenue"].iloc[0])
+        if not total_df.empty and total_df["total_revenue"].iloc[0] is not None
+        else 0.0
+    )
 
     # По продукти
-    query_products = """
-        SELECT product_name,
-               SUM(quantity) AS quantity,
-               SUM(revenue) AS revenue
+    query_products = text(
+        """
+        SELECT
+            product_name,
+            SUM(quantity) AS quantity,
+            SUM(revenue) AS revenue
         FROM sales
-        WHERE vendor_id = ?
-          AND substr(timestamp, 7, 4) || '-' || substr(timestamp, 4, 2) || '-' || substr(timestamp, 1, 2) = ?
+        WHERE vendor_id = :vendor_id
+          AND (substr(timestamp, 7, 4) || '-' || substr(timestamp, 4, 2) || '-' || substr(timestamp, 1, 2)) = :date_str
         GROUP BY product_name
         ORDER BY revenue DESC;
-    """
-    products_df = pd.read_sql_query(query_products, engine, params=(vendor_id, date_str))
+        """
+    )
+    products_df = pd.read_sql_query(
+        query_products,
+        engine,
+        params={"vendor_id": vendor_id, "date_str": date_str},
+    )
 
     products = []
     if not products_df.empty:

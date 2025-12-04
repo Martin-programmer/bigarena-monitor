@@ -22,3 +22,5 @@ data.db
 # IDE
 .vscode/
 .idea/
+
+*secrets.toml
