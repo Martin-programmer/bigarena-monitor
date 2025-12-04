@@ -15,6 +15,7 @@ from analytics import (
 VENDOR_NAMES = {
     192: "WhiteMe",
     419: "AirWays",
+    426: "Colzzy"
     # добавяй тук още, когато ги имаш
 }
 

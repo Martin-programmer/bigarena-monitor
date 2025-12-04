@@ -70,12 +70,15 @@ if __name__ == "__main__":
     print("Избери vendor:")
     print("1) WhiteMe (192)")
     print("2) AirWays (419)")
-    choice = input("Въведи номер (1 или 2): ").strip()
+    print("3) Colzzy (426)")
+    choice = input("Въведи номер (1, 2 или 3): ").strip()
 
     if choice == "1":
         vendor_id = 192
     elif choice == "2":
         vendor_id = 419
+    elif choice == "3":
+        vendor_id = 426
     else:
         print("Невалиден избор.")
         exit(1)
