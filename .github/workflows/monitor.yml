@@ -2,7 +2,8 @@ name: Monitor Vendors
 
 on:
   schedule:
-    - cron: "* * * * *"   # всеки 1 минута (UTC)
+    # всеки 1 минута по UTC
+    - cron: "* * * * *"
   workflow_dispatch:
 
 jobs:
