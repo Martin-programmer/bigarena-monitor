@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtualenv
+venv/
+.env
+
+# SQLite база и локални файлове
+data.db
+*.sqlite
+*.db
+
+# Логове и временни файлове
+*.log
+*_sales_log_detailed.txt
+*_inventory_state.json
+
+# Streamlit
+.streamlit/
+
+# IDE
+.vscode/
+.idea/
