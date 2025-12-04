@@ -2,8 +2,8 @@ name: Monitor Vendors
 
 on:
   schedule:
-    - cron: "0 * * * *"   # всеки кръгъл час
-  workflow_dispatch:       # и опция да го пускаш ръчно
+    - cron: "* * * * *"   # всеки 1 минута (UTC)
+  workflow_dispatch:
 
 jobs:
   run-monitor:
