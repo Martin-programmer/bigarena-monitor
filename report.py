@@ -1,56 +1,51 @@
 import db
-import sqlite3
+import pandas as pd
+
 
 def get_daily_revenue(vendor_id: int, date_str: str):
     """
     Връща:
     - общ оборот за даден vendor и дата (формат 'YYYY-MM-DD')
-    - списък с продукти: (product_name, quantity, revenue)
+    - списък с продукти: {product_name, quantity, revenue}
     """
-    conn = db.get_connection()
-    cur = conn.cursor()
+    engine = db.get_sqlalchemy_engine()
 
     # Общо по ден
-    cur.execute(
-        """
+    query_total = """
         SELECT SUM(revenue) AS total_revenue
         FROM sales
         WHERE vendor_id = ?
           AND substr(timestamp, 7, 4) || '-' || substr(timestamp, 4, 2) || '-' || substr(timestamp, 1, 2) = ?;
-        """,
-        (vendor_id, date_str)
-    )
-    row = cur.fetchone()
-    total_revenue = row["total_revenue"] if row and row["total_revenue"] is not None else 0.0
+    """
+    total_df = pd.read_sql_query(query_total, engine, params=(vendor_id, date_str))
+    total_revenue = float(total_df["total_revenue"].iloc[0]) if not total_df.empty and total_df["total_revenue"].iloc[0] is not None else 0.0
 
     # По продукти
-    cur.execute(
-        """
+    query_products = """
         SELECT product_name,
-               SUM(quantity) AS total_qty,
-               SUM(revenue) AS total_product_revenue
+               SUM(quantity) AS quantity,
+               SUM(revenue) AS revenue
         FROM sales
         WHERE vendor_id = ?
           AND substr(timestamp, 7, 4) || '-' || substr(timestamp, 4, 2) || '-' || substr(timestamp, 1, 2) = ?
         GROUP BY product_name
-        ORDER BY total_product_revenue DESC;
-        """,
-        (vendor_id, date_str)
-    )
+        ORDER BY revenue DESC;
+    """
+    products_df = pd.read_sql_query(query_products, engine, params=(vendor_id, date_str))
 
-    rows = cur.fetchall()
-    conn.close()
-
-    products = [
-        {
-            "product_name": r["product_name"],
-            "quantity": r["total_qty"],
-            "revenue": r["total_product_revenue"]
-        }
-        for r in rows
-    ]
+    products = []
+    if not products_df.empty:
+        for _, row in products_df.iterrows():
+            products.append(
+                {
+                    "product_name": row["product_name"],
+                    "quantity": int(row["quantity"]),
+                    "revenue": float(row["revenue"]),
+                }
+            )
 
     return total_revenue, products
+
 
 if __name__ == "__main__":
     print("Избери vendor:")
@@ -74,4 +69,3 @@ if __name__ == "__main__":
     print("По продукти:")
     for p in products:
         print(f"- {p['product_name']}: {p['quantity']} бр. | {p['revenue']:.2f} лв.")
-
